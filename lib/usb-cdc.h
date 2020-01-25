@@ -12,6 +12,11 @@
 #include "inc.h"
 
 /**
+ * Current buffer remaining bytes to be sent over USB-CDC
+ */
+extern volatile __idata uint8_t g_UartTransmitByteCount;
+
+/**
  * Send usb data from buffer
  */
 void UsbCdc_processOutput();
@@ -33,8 +38,15 @@ void UsbCdc_puti(uint8_t value);
 
 /**
  * Send 0 terminated string over USB CDC Serial port
+ *
+ * @param str String to send (0 Terminator will not be sent)
  */
 void UsbCdc_puts(char* str);
+
+/**
+ * @return true if the Send buffer is empty
+ */
+bool UsbCdc_isCdcSendBufferEmpty();
 
 /**
  * USB Interrupt Handler

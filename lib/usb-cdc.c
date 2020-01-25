@@ -9,9 +9,10 @@
 
 #include "inc.h"
 #include "usb-cdc.h"
-#include "../usb-descriptor/usb-descriptor.h"
 #include "hardware.h"
 #include "../logic.h"
+#include "../usb-descriptor/usb-descriptor.h"
+#include "dataflash.h"
 
 
 /**
@@ -37,17 +38,28 @@ const uint8_t* g_pDescr;
 uint16_t g_SetupLen;
 
 /**
+ * Buffer for dynamic generated setup responses
+ */
+uint8_t g_SetupRamBuffer[34];
+
+/**
  * Use the received data as Setup request
  */
 #define UsbSetupBuf	((PUSB_SETUP_REQ)Ep0Buffer)
 
-// Configures DTE rate, stop-bits, parity, and number-of-character
+/**
+ * Configures DTE rate, stop-bits, parity, and number-of-character
+ */
 #define SET_LINE_CODING 0X20
 
-// This request allows the host to find out the currently configured line coding.
+/**
+ * This request allows the host to find out the currently configured line coding
+ */
 #define GET_LINE_CODING 0X21
 
-// This request generates RS-232/V.24 style control signals
+/**
+ * This request generates RS-232/V.24 style control signals
+ */
 #define SET_CONTROL_LINE_STATE 0X22
 
 /**
@@ -57,32 +69,50 @@ uint16_t g_SetupLen;
  */
 uint32_t g_Baud = 0;
 
-// CDC parameter
-// The initial baud rate is 57600, 1 stop bit, no parity, 8 data bits.
+/**
+ * CDC parameter
+ * The initial baud rate is 57600, 1 stop bit, no parity, 8 data bits.
+ */
 __xdata uint8_t g_LineCoding[7] = { 0x00, 0xe1, 0x00, 0x00, 0x00, 0x00, 0x08 };
 
-// Serial receive buffer size
+/**
+ * Serial receive buffer size
+ */
 #define UART_REV_LEN 64
 
-// Serial receive buffer
+/**
+ * Buffer to send over USB-CDC
+ */
 __idata uint8_t g_Receive_Uart_Buf[UART_REV_LEN];
 
-// The circular buffer write pointer, the bus reset needs to be initialized to 0
+/**
+ * Current buffer remaining bytes to be sent over USB-CDC
+ */
+volatile __idata uint8_t g_UartTransmitByteCount = 0;
+
+/**
+ * The circular buffer write pointer, the bus reset needs to be initialized to 0
+ */
 volatile __idata uint8_t g_Uart_Input_Point = 0;
 
-// The circular buffer fetches the pointer, and the bus reset needs to be initialized to 0.
+/**
+ * The circular buffer fetches the pointer, and the bus reset needs to be initialized to 0.
+ */
 volatile __idata uint8_t g_Uart_Output_Point = 0;
 
-// Current buffer remaining bytes to be fetched
-volatile __idata uint8_t g_UartByteCount = 0;
-
-// Data received on behalf of the USB endpoint
+/**
+ * Data received on behalf of the USB endpoint
+ */
 volatile __idata uint8_t g_USBByteCount = 0;
 
-// Data pointer
+/**
+ * Data pointer
+ */
 volatile __idata uint8_t g_USBBufOutPoint = 0;
 
-// Upload endpoint is busy flag
+/**
+ * Upload endpoint is busy flag
+ */
 volatile __idata uint8_t g_UpPoint2_Busy = 0;
 
 /**
@@ -106,7 +136,7 @@ inline void usbResetInterrupt() {
 	g_Uart_Output_Point = 0;
 
 	// Current buffer remaining bytes to be fetched
-	g_UartByteCount = 0;
+	g_UartTransmitByteCount = 0;
 
 	// Length received by the USB endpoint
 	g_USBByteCount = 0;
@@ -126,7 +156,7 @@ inline void usbWakeupSuspendInterrupt() {
 		}
 
 		// Before turning of the CPU turn OFF the LEDs
-		logicPowerDown();
+		//turnOffLeds();
 
 		SAFE_MOD = 0x55;
 		SAFE_MOD = 0xAA;
@@ -164,6 +194,69 @@ uint8_t transmitSetupBlock(uint8_t len) {
 	return len;
 }
 
+
+/**
+ * Check if there is a custom PID / VID Configured, and overwrite the basic one
+ * This is used to force e.g. Windows 7 to use a specific driver
+ */
+void prepareUsbIds() {
+	uint8_t a = 0;
+
+	if (ReadDataFlash(4, 1, &a) != 1) {
+		return;
+	}
+
+	// Use this char at pos 5 on EEPROM to mark the PID / VID should be loaded
+	if (a != '>') {
+		return;
+	}
+
+	if (ReadDataFlash(0, 1, &a) != 1) {
+		return;
+	}
+	g_SetupRamBuffer[9] = a;
+
+	if (ReadDataFlash(1, 1, &a) != 1) {
+		return;
+	}
+	g_SetupRamBuffer[8] = a;
+
+	if (ReadDataFlash(2, 1, &a) != 1) {
+		return;
+	}
+	g_SetupRamBuffer[11] = a;
+
+	if (ReadDataFlash(3, 1, &a) != 1) {
+		return;
+	}
+	g_SetupRamBuffer[10] = a;
+}
+
+/**
+ * Read custom serial from EEPROM
+ *
+ * @return Len, 0x00 if nothing was read
+ */
+inline uint8_t readNameFromEeprom() {
+	uint8_t i;
+
+	if (ReadDataFlash(24, sizeof(g_SetupRamBuffer) - 2, g_SetupRamBuffer + 2) != 1) {
+
+		for (i = 2; i < sizeof(g_SetupRamBuffer) - 1; i += 2) {
+
+			if (g_SetupRamBuffer[i] == 255 || (g_SetupRamBuffer[i] == 0 && g_SetupRamBuffer[i + 1] == 0)) {
+				if (i > 2) {
+					return i;
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	return 0x00;
+}
+
 /**
  * Process USB Standard setup request
  *
@@ -177,7 +270,12 @@ inline uint8_t processUsbDescriptionRequest() {
 	case 1:
 		// Send the device descriptor to the buffer to be sent
 		len = sizeof(g_DescriptorDevice);
-		g_pDescr = g_DescriptorDevice;
+		memcpy(g_SetupRamBuffer, g_DescriptorDevice, len);
+
+		// Update USB IDs
+		prepareUsbIds();
+
+		g_pDescr = g_SetupRamBuffer;
 		break;
 
 	// Configuration descriptor
@@ -197,9 +295,15 @@ inline uint8_t processUsbDescriptionRequest() {
 			len = sizeof(g_DescriptorManufacturer);
 
 		} else if (UsbSetupBuf->wValueL == 2) {
-			g_pDescr = g_DescriptorProduct;
-			len = sizeof(g_DescriptorProduct);
-
+			len = readNameFromEeprom();
+			if (len == 0x00) {
+				g_pDescr = g_DescriptorProduct;
+				len = sizeof(g_DescriptorProduct);
+			} else {
+				g_pDescr = g_SetupRamBuffer;
+				g_SetupRamBuffer[0] = len;
+				g_SetupRamBuffer[1] = 3;
+			}
 		} else {
 			g_pDescr = g_DescriptorSerial;
 			len = sizeof(g_DescriptorSerial);
@@ -661,7 +765,7 @@ void UsbCdc_putc(uint8_t tdata) {
 	g_Receive_Uart_Buf[g_Uart_Input_Point++] = tdata;
 
 	// Current buffer remaining bytes to be fetched
-	g_UartByteCount++;
+	g_UartTransmitByteCount++;
 	if (g_Uart_Input_Point >= UART_REV_LEN) {
 		g_Uart_Input_Point = 0;
 	}
@@ -700,6 +804,14 @@ void UsbCdc_puts(char* str) {
 	}
 }
 
+
+/**
+ * @return true if the Send buffer is empty
+ */
+bool UsbCdc_isCdcSendBufferEmpty() {
+	return g_UartTransmitByteCount == 0;
+}
+
 /**
  * Send usb data from buffer
  */
@@ -707,13 +819,13 @@ void UsbCdc_processOutput() {
 	static uint8_t uartTimeout = 0;
 
 	if (g_UsbConfig) {
-		if (g_UartByteCount) {
+		if (g_UartTransmitByteCount) {
 			uartTimeout++;
 		}
 
 		// The endpoint is not busy (the first packet of data after idle, only used to trigger the upload)
 		if (!g_UpPoint2_Busy) {
-			uint8_t length = g_UartByteCount;
+			uint8_t length = g_UartTransmitByteCount;
 			if (length > 0) {
 				if (length > 39 || uartTimeout > 100) {
 					uartTimeout = 0;
@@ -721,7 +833,7 @@ void UsbCdc_processOutput() {
 						length = UART_REV_LEN - g_Uart_Output_Point;
 					}
 
-					g_UartByteCount -= length;
+					g_UartTransmitByteCount -= length;
 					// Write upload endpoint
 					memcpy(Ep2Buffer + MAX_PACKET_SIZE, &g_Receive_Uart_Buf[g_Uart_Output_Point], length);
 					g_Uart_Output_Point += length;
@@ -745,14 +857,13 @@ void UsbCdc_processOutput() {
  * Receive data from USB and process it, process only one byte at once
  */
 void UsbCdc_processInput() {
-	while (g_USBByteCount) {
+	if (g_USBByteCount) {
 		logicCharReceived(Ep2Buffer[g_USBBufOutPoint++]);
 
 		g_USBByteCount--;
 
 		if (g_USBByteCount == 0) {
 			UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_R_RES) | UEP_R_RES_ACK;
-			break;
 		}
 	}
 }

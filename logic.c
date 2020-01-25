@@ -17,9 +17,20 @@ uint32_t g_sendBytes = 0;
  * Called from the main loop
  */
 void logicLoop() {
-	while (g_sendBytes) {
-		//UsbCdc_puts("ABCDEFGHIJ");
-		g_sendBytes -= 10;
+	if (g_sendBytes) {
+
+		// Wait for send buffer empty
+		if (g_UartTransmitByteCount == 0) {
+			UsbCdc_puts("ABCDEFGHIJKLMNOPQRSTUVWXY");
+			g_sendBytes -= 25;
+
+			if (g_sendBytes == 0) {
+				// To detect end by test script
+				UsbCdc_putc('\n');
+			}
+		}
+	} else {
+		P3_2 = 1;
 	}
 }
 
@@ -29,7 +40,8 @@ void logicLoop() {
 void logicCharReceived(char c) {
 	if (c == 's') {
 		// 1 MByte
-		g_sendBytes = 1000 * 1000;
+		g_sendBytes = 10 * 1000;
+		P3_2 = 0;
 	}
 }
 
