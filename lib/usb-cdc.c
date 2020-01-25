@@ -342,11 +342,13 @@ inline uint8_t processStandardSetupSetFeatureRequest() {
 
 		// Set endpoint
 	} else if ((UsbSetupBuf->bRequestType & 0x1F) == USB_REQ_RECIP_ENDP) {
-		if (UsbSetupBuf->wValueH == 0 && UsbSetupBuf->wValueL == 0x00) {
+		if (UsbSetupBuf->wValueH == 0 && UsbSetupBuf->wValueL == 0x00 && UsbSetupBuf->wIndexH == 0) {
 			// result success
 			len = 0;
 
-			switch (((uint16_t) UsbSetupBuf->wIndexH << 8) | UsbSetupBuf->wIndexL) {
+			// UsbSetupBuf->wIndexH is not used in this case, only values <= 255 are used
+			// therefore this needs not to be checked here, it saves a few bytes!
+			switch (UsbSetupBuf->wIndexL) {
 			case 0x83:
 				// Set endpoint 3 IN STALL
 				UEP3_CTRL = (UEP3_CTRL & (~bUEP_T_TOG)) | UEP_T_RES_STALL;
