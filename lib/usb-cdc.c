@@ -11,6 +11,7 @@
 #include "usb-cdc.h"
 #include "../usb-descriptor/usb-descriptor.h"
 #include "hardware.h"
+#include "../logic.h"
 
 
 /**
@@ -690,6 +691,8 @@ void UsbCdc_puti(uint8_t value) {
 
 /**
  * Send 0 terminated string over USB CDC Serial port
+ *
+ * @param str String to send (0 Terminator will not be sent)
  */
 void UsbCdc_puts(char* str) {
 	while (*str) {
