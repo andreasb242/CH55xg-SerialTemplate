@@ -28,6 +28,26 @@ extern __xdata __at (0x0080) uint8_t  Ep2Buffer[2 * MAX_PACKET_SIZE];
 // ----------------------------------------------------------------------------
 
 
+
+/**
+ * Configure System Clock, system clock is set in the Makefile
+ */
+void ConfigureSystemClock();
+
+/**
+ * Delay Microseconds
+ *
+ * @param n Microseconds
+ */
+void delay_us(uint16_t n);
+
+/**
+ * Delay Milliseconds
+ *
+ * @param n Milliseconds
+ */
+void delay_ms(uint16_t n);
+
 /**
  * USB device mode configuration
  */
@@ -42,11 +62,6 @@ void USBDeviceEndPointCfg();
  * USB device mode interrupt initialization
  */
 void USBDeviceIntCfg();
-
-/**
- * Print string to Serial 0
- */
-void print(const char* str);
 
 /**
  * This function provided a way to access the internal bootloader

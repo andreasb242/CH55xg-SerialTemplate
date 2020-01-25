@@ -20,6 +20,104 @@ __xdata __at (0x0080) uint8_t  Ep2Buffer[2 * MAX_PACKET_SIZE];
 
 // ----------------------------------------------------------------------------
 
+
+/**
+ * Configure System Clock, system clock is set in the Makefile
+ */
+void ConfigureSystemClock() {
+	SAFE_MOD = 0x55;
+	SAFE_MOD = 0xAA;
+
+#if FREQ_SYS == 32000000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x07;  // 32MHz
+#elif FREQ_SYS == 24000000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x06;  // 24MHz
+#elif FREQ_SYS == 16000000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x05;  // 16MHz
+#elif FREQ_SYS == 12000000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x04;  // 12MHz
+#elif FREQ_SYS == 6000000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x03;  // 6MHz
+#elif FREQ_SYS == 3000000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x02;  // 3MHz
+#elif FREQ_SYS == 750000
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x01;  // 750KHz
+#elif FREQ_SYS == 187500
+	CLOCK_CFG = (CLOCK_CFG & ~ MASK_SYS_CK_SEL) | 0x00;  // 187.5MHz
+#else
+#error FREQ_SYS invalid or not set
+#endif
+
+	SAFE_MOD = 0x00;
+}
+
+/**
+ * Delay Microseconds
+ *
+ * @param n Microseconds
+ */
+void delay_us(uint16_t n) {
+#ifdef	FREQ_SYS
+#if		FREQ_SYS <= 6000000
+	n >>= 2;
+#endif
+#if		FREQ_SYS <= 3000000
+	n >>= 2;
+#endif
+#if		FREQ_SYS <= 750000
+	n >>= 4;
+#endif
+#endif
+	while (n) {  // total = 12~13 Fsys cycles, 1uS @Fsys=12MHz
+		++SAFE_MOD;  // 2 Fsys cycles, for higher Fsys, add operation here
+#ifdef	FREQ_SYS
+#if		FREQ_SYS >= 14000000
+		++SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 16000000
+		++SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 18000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 20000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 22000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 24000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 26000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 28000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 30000000
+		++ SAFE_MOD;
+#endif
+#if		FREQ_SYS >= 32000000
+		++ SAFE_MOD;
+#endif
+#endif
+		--n;
+	}
+}
+
+/**
+ * Delay Milliseconds
+ *
+ * @param n Milliseconds
+ */
+void delay_ms(uint16_t n) {
+	while (n) {
+		delay_us(1000);
+		--n;
+	}
+}
+
 /**
  * USB device mode configuration
  */
@@ -103,16 +201,6 @@ void USBDeviceIntCfg() {
 	EA = 1;
 }
 
-/**
- * Print string to Serial 0
- */
-void print(const char* str) {
-	while(*str) {
-		CH554UART0SendByte(*str);
-		str++;
-	}
-}
-
 #define BOOT_ADDR  0x3800
 
 /**
@@ -122,14 +210,18 @@ void jumpToBootloader() {
 	USB_INT_EN = 0;
 	USB_CTRL = 0x06;
 
-	mDelaymS(100);
+	delay_ms(100);
 
 	// Disable all interrupts
 	EA = 0;
 
+	// Ignore in IDE, non standard C Syntax
+#ifndef IDE_ENVIRONMENT
+
 	__asm
 		LJMP BOOT_ADDR /* Jump to bootloader */
 	__endasm;
+#endif
 	while(1);
 }
 

@@ -23,8 +23,7 @@ XRAM_LOC = 0x0100
 # Select all *.c files from main and lib folder, and debug.c from Framework
 # for some helper functions
 C_FILES = $(wildcard ../lib/*.c) \
-	$(wildcard ../*.c) \
-	../framework/include/debug.c
+	$(wildcard ../*.c)
 
 pre-flash:
 
@@ -115,7 +114,9 @@ clean:
 
 ## Download framework
 framework:
-	git clone https://github.com/Blinkinlabs/ch554_sdcc.git ../framework
+	# Files are included in this repository, with minimized code, documented in
+	# english and optimized
+	# git clone https://github.com/Blinkinlabs/ch554_sdcc.git ../framework
 	git clone https://github.com/atc1441/chflasher.git chflasher
 
 

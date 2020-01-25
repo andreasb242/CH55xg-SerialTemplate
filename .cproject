@@ -19,8 +19,8 @@
 	<storageModule moduleId="org.eclipse.cdt.core.pathentry">
 		<pathentry include="/usr/share/sdcc/include" kind="inc" path="" system="true"/>
 		<pathentry include="/usr/share/sdcc/include/mcs51" kind="inc" path="" system="true"/>
-		<pathentry kind="mac" name="SFR(a, b) uint8_t a" path="" value="0"/>
 		<pathentry kind="mac" name="IDE_ENVIRONMENT" path="" value=""/>
+		<pathentry kind="mac" name="FREQ_SYS" path="" value="16000000"/>
 		<pathentry kind="src" path=""/>
 		<pathentry kind="out" path="build"/>
 	</storageModule>

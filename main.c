@@ -33,13 +33,10 @@ void timer0() __interrupt(INT_NO_TMR0) {
  */
 void main() {
 	// CH55x clock selection configuration
-	CfgFsys();
+	ConfigureSystemClock();
 
 	// Modify the main frequency and wait for the internal crystal to stabilize.
-	mDelaymS(5);
-
-	// Serial port 0, can be used for debugging
-	//mInitSTDIO();
+	delay_ms(5);
 
 	// Initialize timer
 	timerSetup();
