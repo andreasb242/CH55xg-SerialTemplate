@@ -23,3 +23,4 @@ void timerSetup();
  * Called from timer interrupt
  */
 inline void timer0clock();
+

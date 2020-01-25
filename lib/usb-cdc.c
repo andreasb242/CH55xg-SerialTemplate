@@ -125,7 +125,7 @@ inline void usbWakeupSuspendInterrupt() {
 		}
 
 		// Before turning of the CPU turn OFF the LEDs
-		// TODO Callback turnOffLeds();
+		logicPowerDown();
 
 		SAFE_MOD = 0x55;
 		SAFE_MOD = 0xAA;
@@ -244,27 +244,27 @@ inline uint8_t processStandardSetupClearRequest() {
 	} else if ((UsbSetupBuf->bRequestType & USB_REQ_RECIP_MASK) == USB_REQ_RECIP_ENDP) {
 		switch (UsbSetupBuf->wIndexL) {
 		case 0x83:
-			UEP3_CTRL = UEP3_CTRL & ~(bUEP_T_TOG | MASK_UEP_T_RES) | UEP_T_RES_NAK;
+			UEP3_CTRL = (UEP3_CTRL & ~(bUEP_T_TOG | MASK_UEP_T_RES)) | UEP_T_RES_NAK;
 			break;
 
 		case 0x03:
-			UEP3_CTRL = UEP3_CTRL & ~(bUEP_R_TOG | MASK_UEP_R_RES) | UEP_R_RES_ACK;
+			UEP3_CTRL = (UEP3_CTRL & ~(bUEP_R_TOG | MASK_UEP_R_RES)) | UEP_R_RES_ACK;
 			break;
 
 		case 0x82:
-			UEP2_CTRL = UEP2_CTRL & ~(bUEP_T_TOG | MASK_UEP_T_RES) | UEP_T_RES_NAK;
+			UEP2_CTRL = (UEP2_CTRL & ~(bUEP_T_TOG | MASK_UEP_T_RES)) | UEP_T_RES_NAK;
 			break;
 
 		case 0x02:
-			UEP2_CTRL = UEP2_CTRL & ~(bUEP_R_TOG | MASK_UEP_R_RES) | UEP_R_RES_ACK;
+			UEP2_CTRL = (UEP2_CTRL & ~(bUEP_R_TOG | MASK_UEP_R_RES)) | UEP_R_RES_ACK;
 			break;
 
 		case 0x81:
-			UEP1_CTRL = UEP1_CTRL & ~(bUEP_T_TOG | MASK_UEP_T_RES) | UEP_T_RES_NAK;
+			UEP1_CTRL = (UEP1_CTRL & ~(bUEP_T_TOG | MASK_UEP_T_RES)) | UEP_T_RES_NAK;
 			break;
 
 		case 0x01:
-			UEP1_CTRL = UEP1_CTRL & ~(bUEP_R_TOG | MASK_UEP_R_RES) | UEP_R_RES_ACK;
+			UEP1_CTRL = (UEP1_CTRL & ~(bUEP_R_TOG | MASK_UEP_R_RES)) | UEP_R_RES_ACK;
 			break;
 
 		default:
@@ -325,32 +325,32 @@ inline uint8_t processStandardSetupSetFeatureRequest() {
 			switch (((uint16_t) UsbSetupBuf->wIndexH << 8) | UsbSetupBuf->wIndexL) {
 			case 0x83:
 				// Set endpoint 3 IN STALL
-				UEP3_CTRL = UEP3_CTRL & (~bUEP_T_TOG) | UEP_T_RES_STALL;
+				UEP3_CTRL = (UEP3_CTRL & (~bUEP_T_TOG)) | UEP_T_RES_STALL;
 				break;
 
 			case 0x03:
 				// Set Endpoint 3 OUT Stall
-				UEP3_CTRL = UEP3_CTRL & (~bUEP_R_TOG) | UEP_R_RES_STALL;
+				UEP3_CTRL = (UEP3_CTRL & (~bUEP_R_TOG)) | UEP_R_RES_STALL;
 				break;
 
 			case 0x82:
 				// Set endpoint 2 IN STALL
-				UEP2_CTRL = UEP2_CTRL & (~bUEP_T_TOG) | UEP_T_RES_STALL;
+				UEP2_CTRL = (UEP2_CTRL & (~bUEP_T_TOG)) | UEP_T_RES_STALL;
 				break;
 
 			case 0x02:
 				// Set Endpoint 2 OUT Stall
-				UEP2_CTRL = UEP2_CTRL & (~bUEP_R_TOG) | UEP_R_RES_STALL;
+				UEP2_CTRL = (UEP2_CTRL & (~bUEP_R_TOG)) | UEP_R_RES_STALL;
 				break;
 
 			case 0x81:
 				// Set endpoint 1 IN STALL
-				UEP1_CTRL = UEP1_CTRL & (~bUEP_T_TOG) | UEP_T_RES_STALL;
+				UEP1_CTRL = (UEP1_CTRL & (~bUEP_T_TOG)) | UEP_T_RES_STALL;
 				break;
 
 			case 0x01:
 				// Set endpoint 1 OUT Stall
-				UEP1_CTRL = UEP1_CTRL & (~bUEP_R_TOG) | UEP_R_RES_STALL;
+				UEP1_CTRL = (UEP1_CTRL & (~bUEP_R_TOG)) | UEP_R_RES_STALL;
 				break;
 
 			default:
@@ -530,7 +530,7 @@ inline void usbTransferInterrupt() {
 		UEP1_T_LEN = 0;
 
 		// Default response NAK
-		UEP1_CTRL = UEP1_CTRL & ~ MASK_UEP_T_RES | UEP_T_RES_NAK;
+		UEP1_CTRL = (UEP1_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_NAK;
 		break;
 
 	// Endpoint 2# Endpoint bulk upload
@@ -539,7 +539,7 @@ inline void usbTransferInterrupt() {
 		UEP2_T_LEN = 0;
 
 		// Default response NAK
-		UEP2_CTRL = UEP2_CTRL & ~ MASK_UEP_T_RES | UEP_T_RES_NAK;
+		UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_NAK;
 
 		// Clear busy flag
 		g_UpPoint2_Busy = 0;
@@ -557,7 +557,7 @@ inline void usbTransferInterrupt() {
 			// Receive a packet of data on the NAK,
 			// the main function is processed,
 			// and the main function modifies the response mode.
-			UEP2_CTRL = UEP2_CTRL & ~ MASK_UEP_R_RES | UEP_R_RES_NAK;
+			UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_R_RES) | UEP_R_RES_NAK;
 		}
 		break;
 
@@ -578,7 +578,7 @@ inline void usbTransferInterrupt() {
 			break;
 
 		case USB_SET_ADDRESS:
-			USB_DEV_AD = USB_DEV_AD & bUDA_GP_BIT | g_SetupLen;
+			USB_DEV_AD = (USB_DEV_AD & bUDA_GP_BIT) | g_SetupLen;
 			UEP0_CTRL = UEP_R_RES_ACK | UEP_T_RES_NAK;
 			break;
 
@@ -730,7 +730,7 @@ void UsbCdc_processOutput() {
 					UEP2_T_LEN = length;
 
 					// Answer ACK
-					UEP2_CTRL = UEP2_CTRL & ~ MASK_UEP_T_RES | UEP_T_RES_ACK;
+					UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_ACK;
 					g_UpPoint2_Busy = 1;
 				}
 			}
@@ -742,13 +742,14 @@ void UsbCdc_processOutput() {
  * Receive data from USB and process it, process only one byte at once
  */
 void UsbCdc_processInput() {
-	if (g_USBByteCount) {
-		// TODO !!!!!!!!!!!!!!!!!! parseCmd(Ep2Buffer[g_USBBufOutPoint++]);
+	while (g_USBByteCount) {
+		logicCharReceived(Ep2Buffer[g_USBBufOutPoint++]);
 
 		g_USBByteCount--;
 
 		if (g_USBByteCount == 0) {
-			UEP2_CTRL = UEP2_CTRL & ~ MASK_UEP_R_RES | UEP_R_RES_ACK;
+			UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_R_RES) | UEP_R_RES_ACK;
+			break;
 		}
 	}
 }

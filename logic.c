@@ -13,4 +13,19 @@
 void logicLoop() {
 }
 
+/**
+ * Called for each received char
+ */
+void logicCharReceived(char c) {
+
+}
+
+/**
+ * Called before device gets powered down by USB
+ */
+void logicPowerDown() {
+
+}
+
+
 

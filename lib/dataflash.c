@@ -5,8 +5,7 @@
  * License: MIT
  */
 
-#include "inc.h"
-#include "eeprom.h"
+#include "dataflash.h"
 
 /**
  * Write data flash (EEPROM)
