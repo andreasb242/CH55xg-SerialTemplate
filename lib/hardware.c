@@ -25,24 +25,21 @@ __xdata __at (0x0080) uint8_t  Ep2Buffer[2 * MAX_PACKET_SIZE];
  */
 void USBDeviceCfg() {
 	// Clear USB control register
-	USB_CTRL = 0x00;
-
+	//USB_CTRL = 0x00;
 	// This bit is the device selection mode
-	USB_CTRL &= ~bUC_HOST_MODE;
-
+	//USB_CTRL &= ~bUC_HOST_MODE;
 	// USB device and internal pull-up enable, automatically return to NAK before interrupt flag is cleared during interrupt
-	USB_CTRL |= bUC_DEV_PU_EN | bUC_INT_BUSY | bUC_DMA_EN;
+	// USB_CTRL |= bUC_DEV_PU_EN | bUC_INT_BUSY | bUC_DMA_EN;
+
+	// Set the register by one command to save a few bytes
+	USB_CTRL = bUC_DEV_PU_EN | bUC_INT_BUSY | bUC_DMA_EN;
 
 	// Device address initialization
 	USB_DEV_AD = 0x00;
 
-	// USB_CTRL |= bUC_LOW_SPEED;
-	// Choose low speed 1.5M mode
-	// UDEV_CTRL |= bUD_LOW_SPEED;
-
-	USB_CTRL &= ~bUC_LOW_SPEED;
 	// Select full speed 12M mode, default mode
-	UDEV_CTRL &= ~bUD_LOW_SPEED;
+	// USB_CTRL &= ~bUC_LOW_SPEED; (already reseted by USB_CTRL = ...)
+	//UDEV_CTRL &= ~bUD_LOW_SPEED; (overwritten by the line below)
 
 	// Disable DP/DM pull-down resistor
 	UDEV_CTRL = bUD_PD_DIS;
@@ -84,14 +81,17 @@ void USBDeviceEndPointCfg() {
  * USB device mode interrupt initialization
  */
 void USBDeviceIntCfg() {
-	// Enable device hang interrupt
-	USB_INT_EN |= bUIE_SUSPEND;
+	//	// Enable device hang interrupt
+	//	USB_INT_EN |= bUIE_SUSPEND;
+	//
+	//	// Enable USB transfer completion interrupt
+	//	USB_INT_EN |= bUIE_TRANSFER;
+	//
+	//	// Enable device mode USB bus reset interrupt
+	//	USB_INT_EN |= bUIE_BUS_RST;
 
-	// Enable USB transfer completion interrupt
-	USB_INT_EN |= bUIE_TRANSFER;
-
-	// Enable device mode USB bus reset interrupt
-	USB_INT_EN |= bUIE_BUS_RST;
+	// Do it all together, to save a few bytes
+	USB_INT_EN |= bUIE_SUSPEND | bUIE_TRANSFER | bUIE_BUS_RST;
 
 	// Clear interrupt flag
 	USB_INT_FG |= 0x1F;

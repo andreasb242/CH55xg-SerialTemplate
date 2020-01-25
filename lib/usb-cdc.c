@@ -315,7 +315,7 @@ inline uint8_t processStandardSetupSetFeatureRequest() {
 
 	// Setting up the device
 	if ((UsbSetupBuf->bRequestType & 0x1F) == USB_REQ_RECIP_DEVICE) {
-		if ((((uint16_t) UsbSetupBuf->wValueH << 8) | UsbSetupBuf->wValueL) == 0x01) {
+		if (UsbSetupBuf->wValueH == 0 && UsbSetupBuf->wValueL == 0x01) {
 			if (g_DescriptorConfiguration[7] & 0x20) {
 				// Sleep
 				while (XBUS_AUX & bUART0_TX) {
@@ -342,7 +342,7 @@ inline uint8_t processStandardSetupSetFeatureRequest() {
 
 		// Set endpoint
 	} else if ((UsbSetupBuf->bRequestType & 0x1F) == USB_REQ_RECIP_ENDP) {
-		if ((((uint16_t) UsbSetupBuf->wValueH << 8) | UsbSetupBuf->wValueL) == 0x00) {
+		if (UsbSetupBuf->wValueH == 0 && UsbSetupBuf->wValueL == 0x00) {
 			// result success
 			len = 0;
 
