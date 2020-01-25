@@ -3,8 +3,8 @@
  * Based on the example from
  * https://github.com/Blinkinlabs/ch554_sdcc/tree/master/examples/usb_device_cdc_i2c
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #include "lib/inc.h"

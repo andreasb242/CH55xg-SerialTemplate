@@ -1,8 +1,8 @@
 /**
- * EEPROM Access Library
+ * Library to read / write dataflash (integrated EEProm)
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #pragma once

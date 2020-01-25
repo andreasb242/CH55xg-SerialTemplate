@@ -75,12 +75,14 @@ print-%  : ; @echo $* = $($*)
 $(TARGET).ihx: $(RELS)
 	$(CC) $(notdir $(RELS)) $(LFLAGS) -o $(TARGET).ihx
 
-$(TARGET).bin: $(TARGET).ihx
+$(TARGET).bin: ../usb-descriptor/usb-descriptor.h $(TARGET).ihx
 	$(OBJCOPY) -I ihex -O binary $(TARGET).ihx $(TARGET).bin
 	@echo "################################################################################"
 	@echo "Programm size `du -k -b "$(TARGET).bin" | cut -f1` Bytes"
 	@echo "################################################################################"
 
+../usb-descriptor/usb-descriptor.h: ../usb-descriptor/usb-descriptor.json
+	../usb-descriptor/generate.py
 
 flash: $(TARGET).bin pre-flash
 	@echo "Flash"

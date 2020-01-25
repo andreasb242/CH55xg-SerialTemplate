@@ -1,8 +1,8 @@
 /**
- * Timer library used to blink or handle timeouts
+ * Timer file controls Timer1
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #include "timer.h"

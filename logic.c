@@ -1,8 +1,8 @@
 /**
- * Main Logic to control LEDs
+ * Main Project Logic
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #include "logic.h"

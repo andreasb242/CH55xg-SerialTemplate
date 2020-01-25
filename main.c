@@ -1,8 +1,8 @@
 /**
- * TODO
+ * Project main, setup everything
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #include "lib/inc.h"

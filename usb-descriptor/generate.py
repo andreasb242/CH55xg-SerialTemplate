@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
 import json
+import os
 
+path = os.path.dirname(os.path.realpath(__file__))
 
-with open('usb-descriptor.json', 'r') as f:
+with open(path + '/usb-descriptor.json', 'r') as f:
 	descriptor = json.load(f)
 
 def printTextDescriptor(out, text, var):
@@ -35,7 +37,7 @@ def printTextDescriptor(out, text, var):
 	out.write('};\n')
 	out.write('\n')
 
-with open('usb-descriptor.h', 'w') as out:
+with open(path + '/usb-descriptor.h', 'w') as out:
 	out.write('/**\n')
 	out.write(' * USB Descriptors\n')
 	out.write(' *\n')
@@ -77,7 +79,7 @@ with open('usb-descriptor.h', 'w') as out:
 	out.write('};\n')
 	out.write('\n')
 
-	file1 = open('part1.template.h', 'r')
+	file1 = open(path + '/part1.template.h', 'r')
 	while True:
 		line = file1.readline()
 		# end of file is reached

@@ -1,8 +1,8 @@
 /**
  * Main USB Logic
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #pragma once
@@ -52,3 +52,4 @@ void mainLoop();
  * USB device mode interrupt initialization
  */
 void USBDeviceIntCfg();
+

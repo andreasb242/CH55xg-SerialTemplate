@@ -1,8 +1,8 @@
 /**
- * Timer library used to blink or handle timeouts
+ * Library to read / write dataflash (integrated EEProm)
  *
- * Andreas Butti, (c) 2019
- * License: GPL
+ * Andreas Butti, (c) 2020
+ * License: MIT
  */
 
 #include "inc.h"
