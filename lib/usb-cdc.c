@@ -695,6 +695,17 @@ void UsbCdc_putc(uint8_t tdata) {
 }
 
 /**
+ * Send 0 terminated string over USB CDC Serial port
+ *
+ * @param str String to send (0 Terminator will not be sent)
+ */
+void UsbCdc_puts(char* str) {
+	while (*str) {
+		UsbCdc_putc(*(str++));
+	}
+}
+
+/**
  * Send uint8_t over CDC Serial port
  */
 void UsbCdc_puti(uint8_t value) {
@@ -717,18 +728,6 @@ void UsbCdc_puti(uint8_t value) {
 }
 
 /**
- * Send 0 terminated string over USB CDC Serial port
- *
- * @param str String to send (0 Terminator will not be sent)
- */
-void UsbCdc_puts(char* str) {
-	while (*str) {
-		UsbCdc_putc(*(str++));
-	}
-}
-
-
-/**
  * @return true if the Send buffer is empty
  */
 bool UsbCdc_isCdcSendBufferEmpty() {
@@ -739,48 +738,39 @@ bool UsbCdc_isCdcSendBufferEmpty() {
  * Send usb data from buffer
  */
 void UsbCdc_processOutput() {
-	static uint8_t uartTimeout = 0;
+	uint8_t length;
 
-	if (g_UsbConfig) {
-		if (g_UartTransmitByteCount) {
-			uartTimeout++;
-		}
-
-		// The endpoint is not busy (the first packet of data after idle, only used to trigger the upload)
-		if (!g_UpPoint2_Busy) {
-			uint8_t length = g_UartTransmitByteCount;
-			if (length > 0) {
-				if (length > 39 || uartTimeout > 100) {
-					uartTimeout = 0;
-					if (g_Uart_Output_Point + length > USBCDC_TRANSMIT_BUFFER_LEN) {
-						length = USBCDC_TRANSMIT_BUFFER_LEN - g_Uart_Output_Point;
-					}
-
-					g_UartTransmitByteCount -= length;
-					// Write upload endpoint
-					memcpy(Ep2Buffer + MAX_PACKET_SIZE, &g_UsbCDCTransmitBuffer[g_Uart_Output_Point], length);
-					g_Uart_Output_Point += length;
-					if (g_Uart_Output_Point >= USBCDC_TRANSMIT_BUFFER_LEN) {
-						g_Uart_Output_Point = 0;
-					}
-
-					// Pre-use send length must be cleared
-					UEP2_T_LEN = length;
-
-					// Answer ACK
-					UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_ACK;
-					g_UpPoint2_Busy = 1;
-				}
-			}
-		}
+	// The endpoint is not busy (the first packet of data after idle, only used to trigger the upload)
+	if (!g_UsbConfig || g_UpPoint2_Busy || g_UartTransmitByteCount == 0) {
+		return;
 	}
+
+	length = g_UartTransmitByteCount;
+	if (g_Uart_Output_Point + length > USBCDC_TRANSMIT_BUFFER_LEN) {
+		length = USBCDC_TRANSMIT_BUFFER_LEN - g_Uart_Output_Point;
+	}
+
+	g_UartTransmitByteCount -= length;
+	// Write upload endpoint
+	memcpy(Ep2Buffer + MAX_PACKET_SIZE, &g_UsbCDCTransmitBuffer[g_Uart_Output_Point], length);
+	g_Uart_Output_Point += length;
+	if (g_Uart_Output_Point >= USBCDC_TRANSMIT_BUFFER_LEN) {
+		g_Uart_Output_Point = 0;
+	}
+
+	// Pre-use send length must be cleared
+	UEP2_T_LEN = length;
+
+	// Answer ACK
+	UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_ACK;
+	g_UpPoint2_Busy = 1;
 }
 
 /**
  * Receive data from USB and process it, process only one byte at once
  */
 void UsbCdc_processInput() {
-	if (g_USBByteCount) {
+	while (g_USBByteCount) {
 		logicCharReceived(Ep2Buffer[g_USBBufOutPoint++]);
 
 		g_USBByteCount--;
