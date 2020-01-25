@@ -1,0 +1,7 @@
+[submodule "framework"]
+	path = framework
+	ignore = all
+
+[submodule "build/chflasher"]
+	path = build/chflasher
+	ignore = all
