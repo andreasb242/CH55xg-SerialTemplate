@@ -194,44 +194,6 @@ uint8_t transmitSetupBlock(uint8_t len) {
 	return len;
 }
 
-
-/**
- * Check if there is a custom PID / VID Configured, and overwrite the basic one
- * This is used to force e.g. Windows 7 to use a specific driver
- */
-void prepareUsbIds() {
-	uint8_t a = 0;
-
-	if (ReadDataFlash(4, 1, &a) != 1) {
-		return;
-	}
-
-	// Use this char at pos 5 on EEPROM to mark the PID / VID should be loaded
-	if (a != '>') {
-		return;
-	}
-
-	if (ReadDataFlash(0, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[9] = a;
-
-	if (ReadDataFlash(1, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[8] = a;
-
-	if (ReadDataFlash(2, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[11] = a;
-
-	if (ReadDataFlash(3, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[10] = a;
-}
-
 /**
  * Read custom serial from EEPROM
  *
@@ -270,12 +232,7 @@ inline uint8_t processUsbDescriptionRequest() {
 	case 1:
 		// Send the device descriptor to the buffer to be sent
 		len = sizeof(g_DescriptorDevice);
-		memcpy(g_SetupRamBuffer, g_DescriptorDevice, len);
-
-		// Update USB IDs
-		prepareUsbIds();
-
-		g_pDescr = g_SetupRamBuffer;
+		g_pDescr = g_DescriptorDevice;
 		break;
 
 	// Configuration descriptor
