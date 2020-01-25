@@ -12,7 +12,6 @@
 #include "hardware.h"
 #include "../logic.h"
 #include "../usb-descriptor/usb-descriptor.h"
-#include "dataflash.h"
 
 
 /**
@@ -195,31 +194,6 @@ uint8_t transmitSetupBlock(uint8_t len) {
 }
 
 /**
- * Read custom serial from EEPROM
- *
- * @return Len, 0x00 if nothing was read
- */
-inline uint8_t readNameFromEeprom() {
-	uint8_t i;
-
-	if (ReadDataFlash(24, sizeof(g_SetupRamBuffer) - 2, g_SetupRamBuffer + 2) != 1) {
-
-		for (i = 2; i < sizeof(g_SetupRamBuffer) - 1; i += 2) {
-
-			if (g_SetupRamBuffer[i] == 255 || (g_SetupRamBuffer[i] == 0 && g_SetupRamBuffer[i + 1] == 0)) {
-				if (i > 2) {
-					return i;
-				} else {
-					break;
-				}
-			}
-		}
-	}
-
-	return 0x00;
-}
-
-/**
  * Process USB Standard setup request
  *
  * @return Length
@@ -252,15 +226,8 @@ inline uint8_t processUsbDescriptionRequest() {
 			len = sizeof(g_DescriptorManufacturer);
 
 		} else if (UsbSetupBuf->wValueL == 2) {
-			len = readNameFromEeprom();
-			if (len == 0x00) {
-				g_pDescr = g_DescriptorProduct;
-				len = sizeof(g_DescriptorProduct);
-			} else {
-				g_pDescr = g_SetupRamBuffer;
-				g_SetupRamBuffer[0] = len;
-				g_SetupRamBuffer[1] = 3;
-			}
+			g_pDescr = g_DescriptorProduct;
+			len = sizeof(g_DescriptorProduct);
 		} else {
 			g_pDescr = g_DescriptorSerial;
 			len = sizeof(g_DescriptorSerial);
