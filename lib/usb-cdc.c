@@ -80,11 +80,6 @@ __xdata uint8_t g_LineCoding[7] = { 0x00, 0xe1, 0x00, 0x00, 0x00, 0x00, 0x08 };
 __idata uint8_t g_UsbCDCTransmitBuffer[USBCDC_TRANSMIT_BUFFER_LEN];
 
 /**
- * Current buffer remaining bytes to be sent over USB-CDC
- */
-volatile __idata uint8_t g_UartTransmitByteCount = 0;
-
-/**
  * The circular buffer write pointer, the bus reset needs to be initialized to 0
  */
 volatile __idata uint8_t g_Uart_Input_Point = 0;
@@ -125,12 +120,6 @@ inline void usbResetInterrupt() {
 
 	// Circular buffer input pointer
 	g_Uart_Input_Point = 0;
-
-	// Circular buffer read pointer
-	g_Uart_Output_Point = 0;
-
-	// Current buffer remaining bytes to be fetched
-	g_UartTransmitByteCount = 0;
 
 	// Length received by the USB endpoint
 	g_USBByteCount = 0;
@@ -685,26 +674,45 @@ void usbInterrupt() {
 
 /**
  * Send one byte over USB CDC Serial port
+ *
+ * @param c Char to send
  */
-void UsbCdc_putc(uint8_t tdata) {
-	g_UsbCDCTransmitBuffer[g_Uart_Input_Point++] = tdata;
-
-	// Current buffer remaining bytes to be fetched
-	g_UartTransmitByteCount++;
-	if (g_Uart_Input_Point >= USBCDC_TRANSMIT_BUFFER_LEN) {
-		g_Uart_Input_Point = 0;
-	}
+void UsbCdc_putc(uint8_t c) {
+	char str[2] = {c, 0};
+	UsbCdc_puts(str);
 }
 
 /**
  * Send 0 terminated string over USB CDC Serial port
  *
- * @param str String to send (0 Terminator will not be sent)
+ * @param str String to send (0 Terminator will not be sent), max USBCDC_TRANSMIT_BUFFER_LEN (64 Byte)
  */
 void UsbCdc_puts(char* str) {
-	while (*str) {
-		UsbCdc_putc(*(str++));
+	uint8_t length;
+
+	// The endpoint is not busy (the first packet of data after idle, only used to trigger the upload)
+	if (!g_UsbConfig) {
+		return;
 	}
+
+	while(g_UpPoint2_Busy) {
+		// The endpoint is not busy (the first packet of data after idle, only used to trigger the upload)
+	}
+
+	length = strlen(str);
+	if (length > USBCDC_TRANSMIT_BUFFER_LEN) {
+		length = USBCDC_TRANSMIT_BUFFER_LEN - g_Uart_Output_Point;
+	}
+
+	// Write upload endpoint
+	memcpy(Ep2Buffer + MAX_PACKET_SIZE, str, length);
+
+	// Pre-use send length must be cleared
+	UEP2_T_LEN = length;
+
+	// Answer ACK
+	UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_ACK;
+	g_UpPoint2_Busy = 1;
 }
 
 /**
@@ -727,45 +735,6 @@ void UsbCdc_puti(uint8_t value) {
 	}
 
 	UsbCdc_puts(data + i);
-}
-
-/**
- * @return true if the Send buffer is empty
- */
-bool UsbCdc_isCdcSendBufferEmpty() {
-	return g_UartTransmitByteCount == 0;
-}
-
-/**
- * Send usb data from buffer
- */
-void UsbCdc_processOutput() {
-	uint8_t length;
-
-	// The endpoint is not busy (the first packet of data after idle, only used to trigger the upload)
-	if (!g_UsbConfig || g_UpPoint2_Busy || g_UartTransmitByteCount == 0) {
-		return;
-	}
-
-	length = g_UartTransmitByteCount;
-	if (g_Uart_Output_Point + length > USBCDC_TRANSMIT_BUFFER_LEN) {
-		length = USBCDC_TRANSMIT_BUFFER_LEN - g_Uart_Output_Point;
-	}
-
-	g_UartTransmitByteCount -= length;
-	// Write upload endpoint
-	memcpy(Ep2Buffer + MAX_PACKET_SIZE, &g_UsbCDCTransmitBuffer[g_Uart_Output_Point], length);
-	g_Uart_Output_Point += length;
-	if (g_Uart_Output_Point >= USBCDC_TRANSMIT_BUFFER_LEN) {
-		g_Uart_Output_Point = 0;
-	}
-
-	// Pre-use send length must be cleared
-	UEP2_T_LEN = length;
-
-	// Answer ACK
-	UEP2_CTRL = (UEP2_CTRL & ~ MASK_UEP_T_RES) | UEP_T_RES_ACK;
-	g_UpPoint2_Busy = 1;
 }
 
 /**

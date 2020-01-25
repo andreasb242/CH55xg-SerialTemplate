@@ -33,8 +33,10 @@ void UsbCdc_processInput();
 
 /**
  * Send one byte over USB CDC Serial port
+ *
+ * @param c Char to send
  */
-void UsbCdc_putc(uint8_t tdata);
+void UsbCdc_putc(uint8_t c);
 
 /**
  * Send uint8_t over CDC Serial port
@@ -47,11 +49,6 @@ void UsbCdc_puti(uint8_t value);
  * @param str String to send (0 Terminator will not be sent)
  */
 void UsbCdc_puts(char* str);
-
-/**
- * @return true if the Send buffer is empty
- */
-bool UsbCdc_isCdcSendBufferEmpty();
 
 /**
  * USB Interrupt Handler

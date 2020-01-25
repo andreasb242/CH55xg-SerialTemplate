@@ -63,7 +63,7 @@ void main() {
 
 	// Main Loop
 	while(1) {
-		UsbCdc_processOutput();
+		//UsbCdc_processOutput();
 		UsbCdc_processInput();
 
 		logicLoop();

@@ -19,14 +19,12 @@ uint32_t g_sendBytes = 0;
 void logicLoop() {
 	if (g_sendBytes) {
 		// Wait for send buffer empty
-		if (g_UartTransmitByteCount < (USBCDC_TRANSMIT_BUFFER_LEN - 25)) {
-			UsbCdc_puts("ABCDEFGHIJKLMNOPQRSTUVWXY");
-			g_sendBytes -= 25;
+		UsbCdc_puts("ABCDEFGHIJKLMNOPQRSTUVWXY");
+		g_sendBytes -= 25;
 
-			if (g_sendBytes == 0) {
-				// To detect end by test script
-				UsbCdc_putc('\n');
-			}
+		if (g_sendBytes == 0) {
+			// To detect end by test script
+			UsbCdc_putc('\n');
 		}
 	} else {
 		P3_2 = 1;
