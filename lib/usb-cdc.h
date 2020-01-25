@@ -12,6 +12,11 @@
 #include "inc.h"
 
 /**
+ * USB-CDC Transmit Buffer Length
+ */
+#define USBCDC_TRANSMIT_BUFFER_LEN  64
+
+/**
  * Current buffer remaining bytes to be sent over USB-CDC
  */
 extern volatile __idata uint8_t g_UartTransmitByteCount;

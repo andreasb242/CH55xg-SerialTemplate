@@ -37,11 +37,6 @@ const uint8_t* g_pDescr;
 uint16_t g_SetupLen;
 
 /**
- * Buffer for dynamic generated setup responses
- */
-uint8_t g_SetupRamBuffer[34];
-
-/**
  * Use the received data as Setup request
  */
 #define UsbSetupBuf	((PUSB_SETUP_REQ)Ep0Buffer)
@@ -75,14 +70,9 @@ uint32_t g_Baud = 0;
 __xdata uint8_t g_LineCoding[7] = { 0x00, 0xe1, 0x00, 0x00, 0x00, 0x00, 0x08 };
 
 /**
- * Serial receive buffer size
- */
-#define UART_REV_LEN 64
-
-/**
  * Buffer to send over USB-CDC
  */
-__idata uint8_t g_Receive_Uart_Buf[UART_REV_LEN];
+__idata uint8_t g_UsbCDCTransmitBuffer[USBCDC_TRANSMIT_BUFFER_LEN];
 
 /**
  * Current buffer remaining bytes to be sent over USB-CDC
@@ -426,7 +416,7 @@ inline uint8_t processStandardSetupRequest() {
 	case USB_GET_INTERFACE:
 		break;
 
-		//Clear Feature
+	// Clear Feature
 	case USB_CLEAR_FEATURE:
 		len = processStandardSetupClearRequest();
 		break;
@@ -686,11 +676,11 @@ void usbInterrupt() {
  * Send one byte over USB CDC Serial port
  */
 void UsbCdc_putc(uint8_t tdata) {
-	g_Receive_Uart_Buf[g_Uart_Input_Point++] = tdata;
+	g_UsbCDCTransmitBuffer[g_Uart_Input_Point++] = tdata;
 
 	// Current buffer remaining bytes to be fetched
 	g_UartTransmitByteCount++;
-	if (g_Uart_Input_Point >= UART_REV_LEN) {
+	if (g_Uart_Input_Point >= USBCDC_TRANSMIT_BUFFER_LEN) {
 		g_Uart_Input_Point = 0;
 	}
 }
@@ -753,15 +743,15 @@ void UsbCdc_processOutput() {
 			if (length > 0) {
 				if (length > 39 || uartTimeout > 100) {
 					uartTimeout = 0;
-					if (g_Uart_Output_Point + length > UART_REV_LEN) {
-						length = UART_REV_LEN - g_Uart_Output_Point;
+					if (g_Uart_Output_Point + length > USBCDC_TRANSMIT_BUFFER_LEN) {
+						length = USBCDC_TRANSMIT_BUFFER_LEN - g_Uart_Output_Point;
 					}
 
 					g_UartTransmitByteCount -= length;
 					// Write upload endpoint
-					memcpy(Ep2Buffer + MAX_PACKET_SIZE, &g_Receive_Uart_Buf[g_Uart_Output_Point], length);
+					memcpy(Ep2Buffer + MAX_PACKET_SIZE, &g_UsbCDCTransmitBuffer[g_Uart_Output_Point], length);
 					g_Uart_Output_Point += length;
-					if (g_Uart_Output_Point >= UART_REV_LEN) {
+					if (g_Uart_Output_Point >= USBCDC_TRANSMIT_BUFFER_LEN) {
 						g_Uart_Output_Point = 0;
 					}
 

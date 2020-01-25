@@ -18,9 +18,8 @@ uint32_t g_sendBytes = 0;
  */
 void logicLoop() {
 	if (g_sendBytes) {
-
 		// Wait for send buffer empty
-		if (g_UartTransmitByteCount == 0) {
+		if (g_UartTransmitByteCount < (USBCDC_TRANSMIT_BUFFER_LEN - 25)) {
 			UsbCdc_puts("ABCDEFGHIJKLMNOPQRSTUVWXY");
 			g_sendBytes -= 25;
 
