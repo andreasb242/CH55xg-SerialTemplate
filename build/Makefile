@@ -30,7 +30,7 @@ pre-flash:
 # TODO Check size for different types CH551g, CH552g, CH553g, CH554g
 
 ifndef FREQ_SYS
-FREQ_SYS = 16000000
+FREQ_SYS = 24000000
 endif
 
 ifndef XRAM_SIZE

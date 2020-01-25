@@ -19,9 +19,6 @@
 #define true 1
 #define false 0
 
-//#define PRINT_DBG(str) print(str "\r\n")
-#define PRINT_DBG(str)
-
 /**
  * USB device mode configuration
  */
