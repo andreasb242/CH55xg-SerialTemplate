@@ -60,7 +60,7 @@ with open(path + '/usb-descriptor.h', 'w') as out:
 	out.write('\t')
 
 	vendorId = descriptor['vendor']
-	out.write('0x' + vendorId[0:2] + ', 0x' + vendorId[2:4] + ',')
+	out.write('0x' + vendorId[2:4] + ', 0x' + vendorId[0:2] + ',')
 	
 	out.write('\n')
 	out.write('\n')
@@ -69,8 +69,8 @@ with open(path + '/usb-descriptor.h', 'w') as out:
 	out.write('\t// Product\n')
 	out.write('\t')
 
-	productId = descriptor['vendor']
-	out.write('0x' + productId[0:2] + ', 0x' + productId[2:4] + ',')
+	productId = descriptor['product']
+	out.write('0x' + productId[2:4] + ', 0x' + productId[0:2] + ',')
 
 	out.write('\n')
 	out.write('\n')

@@ -44,17 +44,22 @@ uint16_t g_SetupLen;
 /**
  * Configures DTE rate, stop-bits, parity, and number-of-character
  */
-#define SET_LINE_CODING 0X20
+#define SET_LINE_CODING 0x20
 
 /**
  * This request allows the host to find out the currently configured line coding
  */
-#define GET_LINE_CODING 0X21
+#define GET_LINE_CODING 0x21
 
 /**
  * This request generates RS-232/V.24 style control signals
  */
-#define SET_CONTROL_LINE_STATE 0X22
+#define SET_CONTROL_LINE_STATE 0x22
+
+/**
+ * Custom request to reset device
+ */
+#define RESET_DEVICE_TO_BOOTLOADER 0x65
 
 /**
  * Baud rate, not needed for Virtual USB without hardware Serial
@@ -464,6 +469,10 @@ inline uint8_t processNonStandardSetupRequest() {
 
 	// This request generates RS-232/V.24 style control signals
 	case SET_CONTROL_LINE_STATE:
+		break;
+
+	case RESET_DEVICE_TO_BOOTLOADER:
+		jumpToBootloader();
 		break;
 
 	case SET_LINE_CODING:

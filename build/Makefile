@@ -87,6 +87,7 @@ $(TARGET).bin: ../usb-descriptor/usb-descriptor.h $(TARGET).ihx
 flash: $(TARGET).bin pre-flash
 	@echo "Flash"
 	@echo "################################################################################"
+	../test-tools/reset-over-usb.py
 	$(CHFLASHER) $(TARGET).bin
 
 .DEFAULT_GOAL := all
@@ -102,6 +103,7 @@ clean:
 	$(notdir $(RELS:.rel=.rst)) \
 	$(notdir $(RELS:.rel=.sym)) \
 	$(notdir $(RELS:.rel=.adb)) \
+	../usb-descriptor/usb-descriptor.h \
 	$(TARGET).lk \
 	$(TARGET).map \
 	$(TARGET).mem \
