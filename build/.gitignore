@@ -1,0 +1,16 @@
+*.asm
+*.bin
+*.lst
+*.rel
+*.rst
+*.sym
+*.hex
+*.ihex
+*.ihx
+*.lk
+*.map
+*.mem
+
+/default/
+/chflasher/
+

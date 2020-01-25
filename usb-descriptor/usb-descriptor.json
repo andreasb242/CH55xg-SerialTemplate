@@ -1,0 +1,15 @@
+{
+	"Info": [
+		"This file is read on compile time, and automatically generate",
+		"usb-descriptor.h, so change the values here, and call make!"
+	],
+	"vendor-info": "Shared vendor / product id from V-USB / obdev.at",
+	"vendor": "16c0",
+	"product-info": "For CDC-ACM class devices (modems)",
+	"product": "05e1",
+
+	"serial-text": "MyID",
+	"product-text": "Product Name",
+	"manufacturer-text": "Example Manufacturer"
+}
+
