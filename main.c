@@ -39,7 +39,7 @@ void main() {
 	mDelaymS(5);
 
 	// Serial port 0, can be used for debugging
-	mInitSTDIO();
+	//mInitSTDIO();
 
 	// Initialize timer
 	timerSetup();
@@ -53,17 +53,13 @@ void main() {
 	// Interrupt initialization
 	USBDeviceIntCfg();
 
+	// Pre-use send length must be cleared
 	UEP0_T_LEN = 0;
-
-	// Pre-use send length must be cleared
 	UEP1_T_LEN = 0;
-
-	// Pre-use send length must be cleared
 	UEP2_T_LEN = 0;
 
 	// Main Loop
 	while(1) {
-		//UsbCdc_processOutput();
 		UsbCdc_processInput();
 
 		logicLoop();

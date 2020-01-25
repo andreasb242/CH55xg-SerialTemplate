@@ -162,12 +162,11 @@ inline void usbWakeupSuspendInterrupt() {
  * decrement remaining block length.
  * Calculate Length
  *
- * @param len Length
  * @return Length
  */
-uint8_t transmitSetupBlock(uint8_t len) {
+uint8_t transmitSetupBlock() {
 	// This transmission length
-	len = g_SetupLen >= DEFAULT_ENDP0_SIZE ? DEFAULT_ENDP0_SIZE : g_SetupLen;
+	uint8_t len = g_SetupLen >= DEFAULT_ENDP0_SIZE ? DEFAULT_ENDP0_SIZE : g_SetupLen;
 
 	// Load upload data, increment pointer, so the data is transmitted in Blocks
 	memcpy(Ep0Buffer, g_pDescr, len);
@@ -229,7 +228,7 @@ inline uint8_t processUsbDescriptionRequest() {
 		g_SetupLen = len;
 	}
 
-	return transmitSetupBlock(len);
+	return transmitSetupBlock();
 }
 
 /**
@@ -453,9 +452,9 @@ inline uint8_t processNonStandardSetupRequest() {
 	// This request allows the host to find out the currently configured line coding.
 	case GET_LINE_CODING:
 		g_pDescr = g_LineCoding;
-		len = sizeof(g_LineCoding);
+		g_SetupLen = sizeof(g_LineCoding);
 
-		len = transmitSetupBlock(len);
+		len = transmitSetupBlock();
 		break;
 
 	// This request generates RS-232/V.24 style control signals
@@ -589,8 +588,7 @@ inline void usbTransferInterrupt() {
 	case UIS_TOKEN_IN | 0:
 		switch (g_SetupReq) {
 		case USB_GET_DESCRIPTOR:
-			len = transmitSetupBlock(len);
-			UEP0_T_LEN = len;
+			UEP0_T_LEN = transmitSetupBlock();;
 
 			// Sync flag bit flip
 			UEP0_CTRL ^= bUEP_T_TOG;
