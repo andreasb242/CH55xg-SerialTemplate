@@ -7,12 +7,10 @@
  * License: MIT
  */
 
-#include "lib/inc.h"
+#include "inc.h"
 #include "usb-cdc.h"
+#include "../usb-descriptor/usb-descriptor.h"
 #include "hardware.h"
-#include "logic.h"
-#include "usb-descriptor/usb-descriptor.h"
-#include "lib/eeprom.h"
 
 
 /**
@@ -36,9 +34,6 @@ const uint8_t* g_pDescr;
  * Setup length, is decremented if a block is sent, see g_pDescr
  */
 uint16_t g_SetupLen;
-
-// Buffer for dynamic generated setup responses
-uint8_t g_SetupRamBuffer[34];
 
 /**
  * Use the received data as Setup request
@@ -130,7 +125,7 @@ inline void usbWakeupSuspendInterrupt() {
 		}
 
 		// Before turning of the CPU turn OFF the LEDs
-		turnOffLeds();
+		// TODO Callback turnOffLeds();
 
 		SAFE_MOD = 0x55;
 		SAFE_MOD = 0xAA;
@@ -168,69 +163,6 @@ uint8_t transmitSetupBlock(uint8_t len) {
 	return len;
 }
 
-
-/**
- * Check if there is a custom PID / VID Configured, and overwrite the basic one
- * This is used to force e.g. Windows 7 to use a specific driver
- */
-void prepareUsbIds() {
-	uint8_t a = 0;
-
-	if (ReadDataFlash(4, 1, &a) != 1) {
-		return;
-	}
-
-	// Use this char at pos 5 on EEPROM to mark the PID / VID should be loaded
-	if (a != '>') {
-		return;
-	}
-
-	if (ReadDataFlash(0, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[9] = a;
-
-	if (ReadDataFlash(1, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[8] = a;
-
-	if (ReadDataFlash(2, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[11] = a;
-
-	if (ReadDataFlash(3, 1, &a) != 1) {
-		return;
-	}
-	g_SetupRamBuffer[10] = a;
-}
-
-/**
- * Read custom serial from EEPROM
- *
- * @return Len, 0x00 if nothing was read
- */
-inline uint8_t readNameFromEeprom() {
-	uint8_t i;
-
-	if (ReadDataFlash(24, sizeof(g_SetupRamBuffer) - 2, g_SetupRamBuffer + 2) != 1) {
-
-		for (i = 2; i < sizeof(g_SetupRamBuffer) - 1; i += 2) {
-
-			if (g_SetupRamBuffer[i] == 255 || (g_SetupRamBuffer[i] == 0 && g_SetupRamBuffer[i + 1] == 0)) {
-				if (i > 2) {
-					return i;
-				} else {
-					break;
-				}
-			}
-		}
-	}
-
-	return 0x00;
-}
-
 /**
  * Process USB Standard setup request
  *
@@ -244,12 +176,7 @@ inline uint8_t processUsbDescriptionRequest() {
 	case 1:
 		// Send the device descriptor to the buffer to be sent
 		len = sizeof(g_DescriptorDevice);
-		memcpy(g_SetupRamBuffer, g_DescriptorDevice, len);
-
-		// Update USB IDs
-		prepareUsbIds();
-
-		g_pDescr = g_SetupRamBuffer;
+		g_pDescr = g_DescriptorDevice;
 		break;
 
 	// Configuration descriptor
@@ -269,15 +196,9 @@ inline uint8_t processUsbDescriptionRequest() {
 			len = sizeof(g_DescriptorManufacturer);
 
 		} else if (UsbSetupBuf->wValueL == 2) {
-			len = readNameFromEeprom();
-			if (len == 0x00) {
-				g_pDescr = g_DescriptorProduct;
-				len = sizeof(g_DescriptorProduct);
-			} else {
-				g_pDescr = g_SetupRamBuffer;
-				g_SetupRamBuffer[0] = len;
-				g_SetupRamBuffer[1] = 3;
-			}
+			g_pDescr = g_DescriptorProduct;
+			len = sizeof(g_DescriptorProduct);
+
 		} else {
 			g_pDescr = g_DescriptorSerial;
 			len = sizeof(g_DescriptorSerial);

@@ -5,7 +5,7 @@
  * License: MIT
  */
 
-#include "lib/inc.h"
+#include "inc.h"
 
 // USB BUFFER -----------------------------------------------------------------
 

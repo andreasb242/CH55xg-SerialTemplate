@@ -1,5 +1,5 @@
 /**
- * Timer file controls Timer1
+ * Timer file controls Timer0
  *
  * Andreas Butti, (c) 2020
  * License: MIT

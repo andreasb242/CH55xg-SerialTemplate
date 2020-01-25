@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "lib/inc.h"
+#include "inc.h"
 
 /**
  * Send usb data from buffer

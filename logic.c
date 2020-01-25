@@ -6,9 +6,6 @@
  */
 
 #include "logic.h"
-#include "usb-cdc.h"
-#include "lib/eeprom.h"
-#include "timer.h"
 
 /**
  * Called from the main loop

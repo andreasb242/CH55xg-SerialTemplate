@@ -6,10 +6,10 @@
  */
 
 #include "lib/inc.h"
-#include "hardware.h"
+#include "lib/hardware.h"
 #include "logic.h"
-#include "usb-cdc.h"
-#include "timer.h"
+#include "lib/usb-cdc.h"
+#include "lib/timer.h"
 
 /**
  * Interrupt needs to be here in the Main file
@@ -41,27 +41,17 @@ void main() {
 	// Serial port 0, can be used for debugging
 	mInitSTDIO();
 
-	PRINT_DBG("UART init");
-
 	// Initialize timer
 	timerSetup();
-
-	PRINT_DBG("bitbangSetup");
 
 	// Enable USB Port
 	USBDeviceCfg();
 
-	PRINT_DBG("USBDeviceCfg");
-
 	// Endpoint configuration
 	USBDeviceEndPointCfg();
 
-	PRINT_DBG("USBDeviceEndPointCfg");
-
 	// Interrupt initialization
 	USBDeviceIntCfg();
-
-	PRINT_DBG("USBDeviceIntCfg");
 
 	UEP0_T_LEN = 0;
 
@@ -73,12 +63,7 @@ void main() {
 
 	// Main Loop
 	while(1) {
-		PRINT_DBG("l");
-
-	    P3_2 = 1;
 		UsbCdc_processOutput();
-	    P3_2 = 0;
-
 		UsbCdc_processInput();
 
 		logicLoop();

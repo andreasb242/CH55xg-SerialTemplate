@@ -1,5 +1,5 @@
 /**
- * Timer file controls Timer1
+ * Timer file controls Timer0
  *
  * Andreas Butti, (c) 2020
  * License: MIT
@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include "lib/inc.h"
+#include "inc.h"
 
 /**
  * Internal timer
