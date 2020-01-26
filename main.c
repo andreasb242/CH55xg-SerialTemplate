@@ -41,6 +41,9 @@ void main() {
 	// Initialize timer
 	timerSetup();
 
+	// Initialize Hardware
+	logicInit();
+
 	// Enable USB Port
 	USBDeviceCfg();
 

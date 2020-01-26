@@ -14,6 +14,12 @@
 uint32_t g_sendBytes = 0;
 
 /**
+ * Initialize Hardware
+ */
+void logicInit() {
+}
+
+/**
  * Called from the main loop
  */
 void logicLoop() {
@@ -33,6 +39,8 @@ void logicLoop() {
 
 /**
  * Called for each received char
+ *
+ * @param c Received char
  */
 void logicCharReceived(char c) {
 	if (c == 's') {

@@ -10,12 +10,19 @@
 #include "lib/inc.h"
 
 /**
+ * Initialize Hardware
+ */
+void logicInit();
+
+/**
  * Called from the main loop
  */
 void logicLoop();
 
 /**
  * Called for each received char
+ *
+ * @param c Received char
  */
 void logicCharReceived(char c);
 
